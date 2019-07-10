@@ -25,6 +25,7 @@ dependencies {
     def retrofit_version = "2.6.0"
     def adapter_rxjava_version = "2.6.0"
     def lifecycle_version = "2.0.0"
+    def rxbinding_version = "3.0.0-alpha2"
 
     implementation fileTree(dir: 'libs', include: ['*.jar'])
     implementation 'androidx.appcompat:appcompat:1.0.2'
@@ -47,4 +48,7 @@ dependencies {
 
     //RxJava Call Adapter
     implementation "com.squareup.retrofit2:adapter-rxjava2:$adapter_rxjava_version"
+
+    //Rx Binding Library
+    implementation "com.jakewharton.rxbinding3:rxbinding:$rxbinding_version"
 }

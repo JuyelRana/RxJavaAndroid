@@ -7,9 +7,12 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.TextView;
 
+import com.jakewharton.rxbinding3.view.RxView;
+
 import org.reactivestreams.Subscription;
 
 import java.io.IOException;
+import java.util.List;
 import java.util.concurrent.TimeUnit;
 
 import io.reactivex.Flowable;
@@ -26,6 +29,7 @@ import io.reactivex.functions.Consumer;
 import io.reactivex.functions.Function;
 import io.reactivex.functions.Predicate;
 import io.reactivex.schedulers.Schedulers;
+import kotlin.Unit;
 import okhttp3.ResponseBody;
 
 public class MainActivity extends AppCompatActivity {
@@ -36,6 +40,8 @@ public class MainActivity extends AppCompatActivity {
     private TextView text;
 
     //Vars
+    //Global disposables object
+    CompositeDisposable disposable = new CompositeDisposable();
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -44,52 +50,38 @@ public class MainActivity extends AppCompatActivity {
 
         text = findViewById(R.id.text);
 
-        /*MainViewModel viewModel = ViewModelProviders.of(this).get(MainViewModel.class);
-        viewModel.makeQuery().observe(this, new androidx.lifecycle.Observer<ResponseBody>() {
-            @Override
-            public void onChanged(ResponseBody responseBody) {
-                Log.d(TAG, "onChanged: this is a live data response!");
-                try {
-                    Log.d(TAG, "onChanged: " + responseBody.string());
-                } catch (IOException e) {
-                    e.printStackTrace();
-                }
-            }
-        });*/
-
-        Observable<Task> taskObservable = Observable
-                .fromIterable(DataSource.createTaskList())
-                .filter(new Predicate<Task>() {
+        //Detect clicks to a button
+        RxView.clicks(findViewById(R.id.button))
+                .map(new Function<Unit, Integer>() {  //Convert the detected clicks to an integer
                     @Override
-                    public boolean test(Task task) throws Exception {
-                        return task.getDescription().equals("Walk the dog");
+                    public Integer apply(Unit unit) throws Exception {
+                        return 1;
                     }
                 })
-                .subscribeOn(Schedulers.io())
-                .observeOn(AndroidSchedulers.mainThread());
+                .buffer(4,TimeUnit.SECONDS)  //Captures all the clicks during a 4 second interval
+                .observeOn(AndroidSchedulers.mainThread())
+                .subscribe(new Observer<List<Integer>>() {
+                    @Override
+                    public void onSubscribe(Disposable d) {
+                        disposable.add(d);  //add to disposables to you can clear in onDestroy
+                    }
 
-        taskObservable.subscribe(new Observer<Task>() {
-            @Override
-            public void onSubscribe(Disposable d) {
+                    @Override
+                    public void onNext(List<Integer> integers) {
+                        Log.d(TAG, "onNext: You Clicked "+integers.size() + " times in 4 seconds!");
+                    }
 
-            }
+                    @Override
+                    public void onError(Throwable e) {
 
-            @Override
-            public void onNext(Task task) {
-                Log.d(TAG, "onNext: " + task.getDescription());
-            }
+                    }
 
-            @Override
-            public void onError(Throwable e) {
+                    @Override
+                    public void onComplete() {
 
-            }
+                    }
+                });
 
-            @Override
-            public void onComplete() {
-
-            }
-        });
     }
-
 
 }
