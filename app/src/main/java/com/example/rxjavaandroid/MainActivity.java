@@ -1,37 +1,20 @@
 package com.example.rxjavaandroid;
 
-import androidx.appcompat.app.AppCompatActivity;
-import androidx.appcompat.widget.SearchView;
-import androidx.lifecycle.ViewModelProviders;
-
 import android.os.Bundle;
 import android.util.Log;
-import android.widget.TextView;
 
-import com.jakewharton.rxbinding3.view.RxView;
+import androidx.appcompat.app.AppCompatActivity;
+import androidx.appcompat.widget.SearchView;
 
-import org.reactivestreams.Subscription;
-
-import java.io.IOException;
-import java.util.List;
 import java.util.concurrent.TimeUnit;
 
-import io.reactivex.Flowable;
-import io.reactivex.FlowableSubscriber;
 import io.reactivex.Observable;
 import io.reactivex.ObservableEmitter;
 import io.reactivex.ObservableOnSubscribe;
 import io.reactivex.Observer;
-import io.reactivex.Scheduler;
-import io.reactivex.android.schedulers.AndroidSchedulers;
 import io.reactivex.disposables.CompositeDisposable;
 import io.reactivex.disposables.Disposable;
-import io.reactivex.functions.Consumer;
-import io.reactivex.functions.Function;
-import io.reactivex.functions.Predicate;
 import io.reactivex.schedulers.Schedulers;
-import kotlin.Unit;
-import okhttp3.ResponseBody;
 
 public class MainActivity extends AppCompatActivity {
 
@@ -54,7 +37,7 @@ public class MainActivity extends AppCompatActivity {
 
         timeSinceLastRequest = System.currentTimeMillis();
 
-        //Create the Observable
+        // create the Observable
         Observable<String> observableQueryText = Observable
                 .create(new ObservableOnSubscribe<String>() {
                     @Override
@@ -68,19 +51,19 @@ public class MainActivity extends AppCompatActivity {
                             }
 
                             @Override
-                            public boolean onQueryTextChange(String newText) {
+                            public boolean onQueryTextChange(final String newText) {
                                 if (!emitter.isDisposed()) {
-                                    emitter.onNext(newText);  // Pass the query to the emitter
+                                    emitter.onNext(newText); // Pass the query to the emitter
                                 }
                                 return false;
                             }
                         });
                     }
                 })
-                .debounce(1000, TimeUnit.SECONDS)  // Apply debounce operator to limit requests
+                .debounce(500, TimeUnit.MILLISECONDS) // Apply Debounce() operator to limit requests
                 .subscribeOn(Schedulers.io());
 
-        // Subscribe on Observer
+        // Subscribe an Observer
         observableQueryText.subscribe(new Observer<String>() {
             @Override
             public void onSubscribe(Disposable d) {
@@ -89,7 +72,7 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onNext(String s) {
-                Log.d(TAG, "onNext: time since last request: " + (System.currentTimeMillis() - timeSinceLastRequest));
+                Log.d(TAG, "onNext: time  since last request: " + (System.currentTimeMillis() - timeSinceLastRequest));
                 Log.d(TAG, "onNext: search query: " + s);
                 timeSinceLastRequest = System.currentTimeMillis();
 
@@ -99,12 +82,10 @@ public class MainActivity extends AppCompatActivity {
 
             @Override
             public void onError(Throwable e) {
-
             }
 
             @Override
             public void onComplete() {
-
             }
         });
 
